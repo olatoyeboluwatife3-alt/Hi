@@ -4,7 +4,7 @@ import '../../services/auth_service.dart';
 import 'email_otp_verification_screen.dart';
 
 class EmailSignupScreen extends StatefulWidget {
-  const EmailSignupScreen({Key? key}) : super(key: key);
+  const EmailSignupScreen({super.key});
 
   @override
   State<EmailSignupScreen> createState() => _EmailSignupScreenState();

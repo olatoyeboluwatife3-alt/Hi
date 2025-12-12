@@ -3,7 +3,7 @@ import 'email_signup_screen.dart';
 import 'phone_signup_screen.dart';
 
 class AccountTypeSelectionScreen extends StatelessWidget {
-  const AccountTypeSelectionScreen({Key? key}) : super(key: key);
+  const AccountTypeSelectionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -95,12 +95,11 @@ class _AccountTypeCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const _AccountTypeCard({
-    Key? key,
     required this.icon,
     required this.title,
     required this.subtitle,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

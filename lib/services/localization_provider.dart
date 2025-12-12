@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:intl/intl_standalone.dart' if (dart.library.html) 'package:intl/intl_browser.dart';
 
-import '../screens/onboarding/language_selection_screen.dart';
 
 class AppLocalizations {
   static const supportedLocales = [
