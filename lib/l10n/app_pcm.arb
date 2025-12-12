@@ -76,5 +76,9 @@
   "genderFemale": "Female",
   "genderOther": "Other",
   "selectGender": "Choose Gender",
-  "welcomeToJourney": "Welcome to your journey"
+  "welcomeToJourney": "Welcome to your journey",
+  "choosePreferredLanguage": "Choose the language wey you like"
+  ,"choosePreferredMethod": "Choose the way wey you like",
+  "createAccountWithEmail": "Create account with email",
+  "createAccountWithPhone": "Create account with phone"
 }

@@ -76,5 +76,9 @@
   "genderFemale": "Obìnrin",
   "genderOther": "Òmíràn",
   "selectGender": "Yan Akọ tàbí Abo",
-  "welcomeToJourney": "Ẹ káàbọ̀ sí ìrìnàjò rẹ"
+  "welcomeToJourney": "Ẹ káàbọ̀ sí ìrìnàjò rẹ",
+  "choosePreferredLanguage": "Yan èdè tí o fẹ́ jù"
+  ,"choosePreferredMethod": "Yan ọna tí o fẹ́ jù",
+  "createAccountWithEmail": "Ṣẹ̀dá àkọọ́lẹ̀ pẹ̀lú ímeèlì",
+  "createAccountWithPhone": "Ṣẹ̀dá àkọọ́lẹ̀ pẹ̀lú fóònù"
 }

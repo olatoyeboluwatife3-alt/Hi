@@ -76,5 +76,9 @@
   "genderFemale": "Mace",
   "genderOther": "Wani",
   "selectGender": "Zaɓi Jinsi",
-  "welcomeToJourney": "Barka da zuwa tafiyarku"
+  "welcomeToJourney": "Barka da zuwa tafiyarku",
+  "choosePreferredLanguage": "Zaɓi harshen da kake so"
+  ,"choosePreferredMethod": "Zaɓi hanyar da kake so",
+  "createAccountWithEmail": "Ƙirƙiri asusu da imel",
+  "createAccountWithPhone": "Ƙirƙiri asusu da waya"
 }
