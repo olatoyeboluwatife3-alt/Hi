@@ -8,7 +8,6 @@ class AppLocalizations {
     Locale('yo'), // Yoruba
     Locale('ig'), // Igbo
     Locale('ha'), // Hausa
-    Locale('pcm'), // Nigerian Pidgin (ISO 639-3 code)
   ];
 
   static const localizationsDelegates = [

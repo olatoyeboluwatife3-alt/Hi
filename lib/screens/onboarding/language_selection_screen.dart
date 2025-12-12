@@ -14,7 +14,6 @@ class LanguageSelectionScreen extends StatelessWidget {
       {'code': 'yo', 'name': 'Yorùbá'},
       {'code': 'ig', 'name': 'Igbo'},
       {'code': 'ha', 'name': 'Hausa'},
-      {'code': 'pcm', 'name': 'Pidgin'},
     ];
 
     return Scaffold(
