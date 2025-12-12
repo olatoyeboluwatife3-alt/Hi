@@ -19,4 +19,5 @@ android/app/profile/
 android/app/release/
 
 # Generated localization files
+lib/flutter_gen/gen_l10n/
 lib/l10n/app_localizations*.dart
