@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -112,14 +110,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 24),
 
-          // Quick Actions
+          // Quick Actions (navigate to specific screens)
           Row(
             children: [
               Expanded(
                 child: _buildQuickActionCard(
                   'Calendar',
                   Icons.calendar_today,
-                  () => setState(() => _selectedIndex = 1),
+                  () => Navigator.of(context).pushNamed('/calendar'),
                 ),
               ),
               const SizedBox(width: 12),
@@ -127,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: _buildQuickActionCard(
                   'Learn Hub',
                   Icons.school,
-                  () => setState(() => _selectedIndex = 2),
+                  () => Navigator.of(context).pushNamed('/audio'),
                 ),
               ),
             ],

@@ -2,8 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
 import 'services/localization_provider.dart';
+import 'services/tts_service.dart';
+import 'services/encouragement_service.dart';
 import 'screens/onboarding/language_selection_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/audio/audio_hub_screen.dart';
+import 'screens/support/support_screen.dart';
+import 'screens/tracking/cycle_input_screen.dart';
+import 'screens/tracking/calendar_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +28,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<AuthServiceImpl>(
           create: (_) => AuthServiceImpl(),
+        ),
+        ChangeNotifierProvider<TtsService>(
+          create: (_) => TtsService(),
         ),
       ],
       child: Consumer<LocalizationProvider>(
@@ -49,11 +58,15 @@ class MyApp extends StatelessWidget {
               ),
             ),
             locale: localizationProvider.locale,
-            supportedLocales: AppLocalizations.supportedLocales,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: LocalizationProvider.supportedLocales,
+            localizationsDelegates: LocalizationProvider.localizationsDelegates,
             home: const LanguageSelectionScreen(),
             routes: {
               '/home': (context) => const HomeScreen(),
+              '/audio': (context) => const AudioHubScreen(),
+              '/support': (context) => const SupportScreen(),
+              '/calendar': (context) => const CalendarScreen(),
+              '/cycle_input': (context) => const CycleInputScreen(),
             },
           );
         },

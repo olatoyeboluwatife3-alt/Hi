@@ -49,7 +49,8 @@ abstract class AuthService {
 }
 
 class AuthServiceImpl extends ChangeNotifier implements AuthService {
-  late SharedPreferences _prefs;
+  SharedPreferences? _prefs;
+  final Map<String, String> _inMemoryPrefs = {};
   User? _currentUser;
   final StreamController<User?> _authStateController =
       StreamController<User?>.broadcast();
@@ -61,25 +62,66 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
   }
 
   Future<void> _initialize() async {
-    _prefs = await SharedPreferences.getInstance();
-    _loadUserFromPrefs();
+    try {
+      _prefs = await SharedPreferences.getInstance();
+      _loadUserFromPrefs();
+    } catch (e) {
+      debugPrint('SharedPreferences init error: $e');
+    }
+  }
+
+  Future<void> _ensurePrefs() async {
+    if (_prefs != null) return;
+    try {
+      _prefs = await SharedPreferences.getInstance();
+    } catch (e) {
+      debugPrint('SharedPreferences ensure error: $e');
+      // Fall back to in-memory prefs when SharedPreferences is unavailable
+      _prefs = null;
+    }
+  }
+
+  String? _getString(String key) {
+    if (_prefs != null) return _prefs!.getString(key);
+    return _inMemoryPrefs[key];
+  }
+
+  Future<void> _setString(String key, String value) async {
+    if (_prefs != null) {
+      await _prefs!.setString(key, value);
+      return;
+    }
+    _inMemoryPrefs[key] = value;
+  }
+
+  Future<void> _removeString(String key) async {
+    if (_prefs != null) {
+      await _prefs!.remove(key);
+      return;
+    }
+    _inMemoryPrefs.remove(key);
   }
 
   void _loadUserFromPrefs() {
-    final userJson = _prefs.getString('user');
-    if (userJson != null) {
-      try {
-        _currentUser = User.fromJson(Map<String, dynamic>.from(
-          (userJson as dynamic) as Map,
-        ));
-      } catch (e) {
-        debugPrint('Error loading user: $e');
+    try {
+      final userJson = _getString('user');
+      if (userJson != null) {
+        try {
+          _currentUser = User.fromJson(Map<String, dynamic>.from(
+            (userJson as dynamic) as Map,
+          ));
+        } catch (e) {
+          debugPrint('Error loading user: $e');
+        }
       }
+    } catch (e) {
+      debugPrint('Load user prefs error: $e');
     }
   }
 
   Future<void> _saveUserToPrefs(User user) async {
-    await _prefs.setString('user', _jsonEncode(user.toJson()));
+    await _ensurePrefs();
+    await _setString('user', _jsonEncode(user.toJson()));
     _currentUser = user;
     _authStateController.add(user);
     notifyListeners();
@@ -107,7 +149,8 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
       }
 
       // Check if user already exists
-      final existingUser = _prefs.getString('user_$email');
+      await _ensurePrefs();
+      final existingUser = _getString('user_$email');
       if (existingUser != null) {
         throw Exception('Email already registered');
       }
@@ -120,8 +163,8 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
       );
 
       // Store temporary user for verification
-      await _prefs.setString('temp_user_$email', _jsonEncode(user.toJson()));
-      await _prefs.setString('user_password_$email', password);
+      await _setString('temp_user_$email', _jsonEncode(user.toJson()));
+      await _setString('user_password_$email', password);
 
       // In production, send OTP via email
       debugPrint('Sending OTP to $email');
@@ -144,7 +187,8 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
       }
 
       // Check if phone already registered
-      final existingUser = _prefs.getString('user_$phoneNumber');
+      await _ensurePrefs();
+      final existingUser = _getString('user_$phoneNumber');
       if (existingUser != null) {
         throw Exception('Phone number already registered');
       }
@@ -158,7 +202,7 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
       );
 
       // Store temporary user
-      await _prefs.setString('temp_user_$phoneNumber', _jsonEncode(user.toJson()));
+      await _setString('temp_user_$phoneNumber', _jsonEncode(user.toJson()));
 
       // In production, send OTP via SMS
       debugPrint('Sending OTP to $phoneNumber');
@@ -185,7 +229,8 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
       debugPrint('Verifying OTP: $otp for email: $email');
 
       // Get temporary user
-      final tempUserJson = _prefs.getString('temp_user_$email');
+      await _ensurePrefs();
+      final tempUserJson = _getString('temp_user_$email');
       if (tempUserJson == null) {
         throw Exception('User not found');
       }
@@ -199,7 +244,7 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
 
       // Save verified user
       await _saveUserToPrefs(user);
-      await _prefs.remove('temp_user_$email');
+      await _removeString('temp_user_$email');
 
       return true;
     } catch (e) {
@@ -221,7 +266,8 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
       debugPrint('Verifying OTP: $otp for phone: $phoneNumber');
 
       // Get temporary user
-      final tempUserJson = _prefs.getString('temp_user_$phoneNumber');
+      await _ensurePrefs();
+      final tempUserJson = _getString('temp_user_$phoneNumber');
       if (tempUserJson == null) {
         throw Exception('User not found');
       }
@@ -235,7 +281,7 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
       );
 
       await _saveUserToPrefs(user);
-      await _prefs.remove('temp_user_$phoneNumber');
+      await _removeString('temp_user_$phoneNumber');
 
       return true;
     } catch (e) {
@@ -315,12 +361,11 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
   }) async {
     try {
       // In production, call backend authentication
-      final userJson = _prefs.getString('user_$email');
+      await _ensurePrefs();
+      final userJson = _getString('user_$email');
       if (userJson == null) {
         throw Exception('User not found');
       }
-
-      // Load and return user
       _loadUserFromPrefs();
       return _currentUser;
     } catch (e) {
@@ -333,7 +378,8 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
   Future<void> signOut() async {
     try {
       _currentUser = null;
-      await _prefs.remove('user');
+      await _ensurePrefs();
+      await _removeString('user');
       _authStateController.add(null);
       notifyListeners();
     } catch (e) {
@@ -359,8 +405,8 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
   }
 
   bool _isValidPhoneNumber(String phone) {
-    final phoneRegex = RegExp(r'^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$');
-    return phoneRegex.hasMatch(phone.replaceAll(' ', ''));
+    final digitsOnly = phone.replaceAll(RegExp(r'\D'), '');
+    return digitsOnly.length >= 7 && digitsOnly.length <= 15;
   }
 
   @override
