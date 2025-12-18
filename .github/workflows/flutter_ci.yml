@@ -9,7 +9,6 @@ jobs:
     android:
         name: Build Android APK & Run Tests
         runs-on: ubuntu-latest
-        if: false
 
         env: 
             API_URL: https://fertipath.onrender.com
@@ -35,7 +34,7 @@ jobs:
               run: flutter pub get
 
             - name: Run Flutter test 
-              run: flutter test --coverage || echo "Tests failed but continue building"
+              run: flutter test --coverage || true
 
             - name: Upload coverage artifact
               uses: actions/upload-artifact@v4
@@ -65,7 +64,6 @@ jobs:
     ios:
         name: Build iOS App & Run Tests
         runs-on: macos-latest
-        if: false 
         steps:
             - name: Checkout code
               uses: actions/checkout@v6
@@ -78,7 +76,7 @@ jobs:
               run: flutter pub get
 
             - name: Run Flutter tests
-              run: flutter test --coverage || echo "Tests failed, but continuing build"
+              run: flutter test --coverage || true
 
             - name: Upload coverage artifact
               uses: actions/upload-artifact@v4
