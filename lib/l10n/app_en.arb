@@ -75,26 +75,7 @@
   "genderMale": "Male",
   "genderFemale": "Female",
   "genderOther": "Other",
-<<<<<<< HEAD
-  "selectGender": "Select Gender"
-  ,
-  "profileTitle": "Profile",
-  "editProfile": "Edit profile",
-  "audioGuidance": "Audio Guidance",
-  "ttcHistory": "TTC History",
-  "faithPreference": "Faith Preference",
-  "cycleLength": "Cycle Length",
-  "lastPeriodDate": "Last Period Date",
-  "continue": "Continue",
-  "joined": "Joined",
-  "audioLessons": "Audio Learning",
-  "play": "Play",
-  "stop": "Stop",
-  "supportHub": "Support Hub",
-  "dailyAffirmation": "Daily Affirmations",
-  "chooseSupportMode": "Choose your support mode",
-  "exploreCommunityGroups": "Explore Community Groups"
-=======
+
   "selectGender": "Select Gender",
   "welcomeToJourney": "Welcome to your journey",
   "choosePreferredLanguage": "Choose your preferred language",
@@ -200,5 +181,5 @@
   "enterPassword": "Enter password",
   "forgotPassword": "Forgot Password?",
   "logIn": "Log In"
->>>>>>> main
+
 }
