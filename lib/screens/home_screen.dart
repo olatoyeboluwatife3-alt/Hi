@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import 'package:nexus_fertility_app/flutter_gen/gen_l10n/app_localizations.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,9 +22,27 @@ class _HomeScreenState extends State<HomeScreen> {
         centerTitle: true,
         title: const Icon(Icons.menu, color: Colors.black),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.more_horiz, color: Colors.black),
-            onPressed: () {},
+          PopupMenuButton<String>(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: Row(
+                children: const [
+                  Text('Menu', style: TextStyle(color: Colors.black)),
+                  SizedBox(width: 6),
+                  Icon(Icons.more_vert, color: Colors.black),
+                ],
+              ),
+            ),
+            onSelected: (value) {
+              if (value == 'profile') Navigator.of(context).pushNamed('/profile');
+              if (value == 'settings') Navigator.of(context).pushNamed('/settings');
+              if (value == 'sex_timing') Navigator.of(context).pushNamed('/sex_timing');
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'profile', child: Text('Profile')),
+              const PopupMenuItem(value: 'settings', child: Text('Settings')),
+              const PopupMenuItem(value: 'sex_timing', child: Text('Sex Timing Preferences')),
+            ],
           ),
         ],
       ),
@@ -111,9 +131,15 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 24),
 
-          // Quick Actions
-          Row(
+          // Quick Actions (navigate to specific screens)
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            physics: const NeverScrollableScrollPhysics(),
             children: [
+
               Expanded(
                 child: _buildQuickActionCard(
                   AppLocalizations.of(context)!.calendar,
@@ -129,6 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   () => setState(() => _selectedIndex = 2),
                 ),
               ),
+
             ],
           ),
           const SizedBox(height: 24),
@@ -371,3 +398,4 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+

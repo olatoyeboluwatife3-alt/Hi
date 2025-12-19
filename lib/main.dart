@@ -3,9 +3,18 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:nexus_fertility_app/flutter_gen/gen_l10n/app_localizations.dart';
 import 'services/auth_service.dart';
+
 import 'services/localization_provider.dart' as loc_provider;
+
 import 'screens/onboarding/language_selection_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/audio/audio_hub_screen.dart';
+import 'screens/support/support_screen.dart';
+import 'screens/tracking/cycle_input_screen.dart';
+import 'screens/tracking/calendar_screen.dart';
+import 'screens/profile/profile_screen.dart';
+import 'screens/settings/settings_screen.dart';
+import 'screens/tracking/sex_timing_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +33,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<AuthServiceImpl>(
           create: (_) => AuthServiceImpl(),
+        ),
+            ChangeNotifierProvider<TtsService>(
+          create: (_) => TtsService(),
         ),
       ],
       child: Consumer<loc_provider.LocalizationProvider>(
@@ -51,6 +63,7 @@ class MyApp extends StatelessWidget {
               ),
             ),
             locale: localizationProvider.locale,
+
             supportedLocales: AppLocalizations.supportedLocales,
             localizationsDelegates: const [
               AppLocalizations.delegate,
@@ -58,9 +71,17 @@ class MyApp extends StatelessWidget {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
+
             home: const LanguageSelectionScreen(),
             routes: {
               '/home': (context) => const HomeScreen(),
+              '/audio': (context) => const AudioHubScreen(),
+              '/support': (context) => const SupportScreen(),
+              '/calendar': (context) => const CalendarScreen(),
+              '/cycle_input': (context) => const CycleInputScreen(),
+              '/profile': (context) => const ProfileScreen(),
+              '/settings': (context) => const SettingsScreen(),
+              '/sex_timing': (context) => const SexTimingPreferencesScreen(),
             },
           );
         },
@@ -114,4 +135,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
+
+
 
