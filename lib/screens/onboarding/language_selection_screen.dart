@@ -58,19 +58,8 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
           child: Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-              child: Container(
+              child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 12,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -78,9 +67,9 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                     Text(
                       'Select preferred Language',
                       style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.black,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.white,
                         fontFamily: 'Poppins',
                       ),
                       textAlign: TextAlign.center,
@@ -96,23 +85,25 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                           child: ElevatedButton(
                             onPressed: () => _handleSelect(lang['code']!),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
+                              backgroundColor: isSelected
+                                  ? const Color(0xFFA8D497)
+                                  : Colors.white,
                               foregroundColor: const Color(0xFF224D2D),
                               side: BorderSide(
                                 color: isSelected
-                                    ? const Color(0xFF224D2D)
+                                    ? const Color(0xFFA8D497)
                                     : const Color(0x33224D2D),
                               ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15),
                               ),
-                              elevation: isSelected ? 6 : 2,
+                              elevation: 0,
                             ),
                             child: Text(
                               lang['name']!,
                               style: const TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w400,
                                 fontFamily: 'Poppins',
                               ),
                             ),
@@ -122,8 +113,10 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                     }).toList(),
                     const SizedBox(height: 32),
                     Align(
-                      alignment: const Alignment(0.25, 0),
-                      child: SizedBox(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 50),
+                        child: SizedBox(
                         width: 99,
                         height: 47,
                         child: ElevatedButton(
@@ -138,13 +131,14 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                           child: const Text(
                             'Next',
                             style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
                               fontFamily: 'Poppins',
                               color: Color(0xFF224D2D),
                             ),
                           ),
                         ),
+                      ),
                       ),
                     ),
                   ],
