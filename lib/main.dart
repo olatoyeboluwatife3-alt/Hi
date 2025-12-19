@@ -8,6 +8,7 @@ import 'services/localization_provider.dart' as loc_provider;
 import 'services/tts_service.dart';
 
 import 'screens/onboarding/language_selection_screen.dart';
+import 'screens/onboarding/splash_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/audio/audio_hub_screen.dart';
 import 'screens/support/support_screen.dart';
@@ -73,7 +74,7 @@ class MyApp extends StatelessWidget {
               GlobalCupertinoLocalizations.delegate,
             ],
 
-            home: const LanguageSelectionScreen(),
+            home: const SplashScreen(),
             routes: {
               '/home': (context) => const HomeScreen(),
               '/audio': (context) => const AudioHubScreen(),

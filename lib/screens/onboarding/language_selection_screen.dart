@@ -4,155 +4,154 @@ import 'package:nexus_fertility_app/flutter_gen/gen_l10n/app_localizations.dart'
 import '../../services/localization_provider.dart' as loc_provider;
 import 'welcome_screen.dart';
 
-class LanguageSelectionScreen extends StatelessWidget {
+class LanguageSelectionScreen extends StatefulWidget {
   const LanguageSelectionScreen({super.key});
 
   @override
+  State<LanguageSelectionScreen> createState() => _LanguageSelectionScreenState();
+}
+
+class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
+  String? _selectedCode;
+
+  List<Map<String, String>> _languages(BuildContext context) => [
+        {'code': 'en', 'name': 'English'},
+        {'code': 'ig', 'name': 'Igbo'},
+        {'code': 'yo', 'name': 'Yoruba'},
+        {'code': 'ha', 'name': 'Hausa'},
+      ];
+
+  void _handleSelect(String code) {
+    setState(() => _selectedCode = code);
+  }
+
+  Future<void> _handleNext(BuildContext context) async {
+    if (_selectedCode == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.selectOption)),
+      );
+      return;
+    }
+    context.read<loc_provider.LocalizationProvider>().setLocaleByLanguageCode(_selectedCode!);
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final languages = [
-      {'code': 'en', 'name': 'English'},
-      {'code': 'yo', 'name': 'Yorùbá'},
-      {'code': 'ig', 'name': 'Igbo'},
-      {'code': 'ha', 'name': 'Hausa'},
-    ];
+    final langs = _languages(context);
 
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Colors.deepPurple.shade50,
-              Colors.deepPurple.shade100,
+              Color(0xFF224D2D),
+              Color(0xFF4FB369),
             ],
           ),
         ),
         child: SafeArea(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  children: [
-                    const Icon(
-                      Icons.language,
-                      size: 64,
-                      color: Colors.deepPurple,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      AppLocalizations.of(context)!.selectLanguage,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.deepPurple,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      AppLocalizations.of(context)!.choosePreferredLanguage,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey.shade600,
-                      ),
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 48),
-
-              // Language Selection Grid (responsive, no flags)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: SizedBox(
-                  // take remaining space and allow scrolling if needed
-                  height: MediaQuery.of(context).size.height * 0.45,
-                  child: GridView.builder(
-                    physics: const BouncingScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: MediaQuery.of(context).size.width > 600 ? 4 : 2,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: 3,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'Select preferred Language',
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black,
+                    fontFamily: 'Poppins',
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                ...langs.map((lang) {
+                  final isSelected = _selectedCode == lang['code'];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: SizedBox(
+                      width: 250,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: () => _handleSelect(lang['code']!),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: const Color(0xFF224D2D),
+                          side: BorderSide(
+                            color: isSelected
+                                ? const Color(0xFF224D2D)
+                                : const Color(0x33224D2D),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          elevation: isSelected ? 6 : 2,
+                        ),
+                        child: Text(
+                          lang['name']!,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                      ),
                     ),
-                    itemCount: languages.length,
-                    itemBuilder: (context, index) {
-                      final language = languages[index];
-                      return LanguageCard(
-                        name: language['name']!,
-                        code: language['code']!,
-                        onTap: () {
-                            context
-                              .read<loc_provider.LocalizationProvider>()
-                              .setLocaleByLanguageCode(language['code']!);
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (context) => const WelcomeScreen(),
-                            ),
-                          );
-                        },
-                      );
-                    },
+                  );
+                }).toList(),
+                const SizedBox(height: 32),
+                Align(
+                  alignment: const Alignment(0.25, 0),
+                  child: SizedBox(
+                    width: 99,
+                    height: 47,
+                    child: ElevatedButton(
+                      onPressed: () => _handleNext(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFA8D497),
+                        foregroundColor: const Color(0xFF224D2D),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Next',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'Poppins',
+                          color: Color(0xFF224D2D),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 48),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class LanguageCard extends StatelessWidget {
-  final String name;
-  final String code;
-  final VoidCallback onTap;
-
-  const LanguageCard({
-    super.key,
-    required this.name,
-    required this.code,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 4),
-              Text(
-                name,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.deepPurple,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
