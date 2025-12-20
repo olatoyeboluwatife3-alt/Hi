@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import '../models/user.dart';
 import 'auth_exception.dart';
 import 'api_service.dart';
@@ -69,7 +68,6 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
   User? _currentUser;
   final StreamController<User?> _authStateController =
       StreamController<User?>.broadcast();
-  final firebase_auth.FirebaseAuth _firebaseAuth = firebase_auth.FirebaseAuth.instance;
   final ApiService _apiService = ApiService();
 
   User? get currentUser => _currentUser;
