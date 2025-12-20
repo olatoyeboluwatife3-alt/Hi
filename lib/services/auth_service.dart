@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import '../models/user.dart';
 import 'auth_exception.dart';
 import 'api_service.dart';
@@ -68,9 +69,15 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
   User? _currentUser;
   final StreamController<User?> _authStateController =
       StreamController<User?>.broadcast();
+  final firebase_auth.FirebaseAuth _firebaseAuth = firebase_auth.FirebaseAuth.instance;
   final ApiService _apiService = ApiService();
+  
+  // For Firebase phone verification
+  String? _verificationId;
+  int? _resendToken;
 
   User? get currentUser => _currentUser;
+  String? get verificationId => _verificationId;
 
   AuthServiceImpl() {
     _initialize();
@@ -80,8 +87,23 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
     try {
       _prefs = await SharedPreferences.getInstance();
       _loadUserFromPrefs();
+      
+      // Load stored token into API service
+      await _loadStoredToken();
     } catch (e) {
       debugPrint('SharedPreferences init error: $e');
+    }
+  }
+
+  // Load stored token from SharedPreferences and set it in ApiService
+  Future<void> _loadStoredToken() async {
+    try {
+      final token = await _apiService.getStoredToken();
+      if (token != null) {
+        debugPrint('Restored access token from storage');
+      }
+    } catch (e) {
+      debugPrint('Error loading stored token: $e');
     }
   }
 
@@ -226,15 +248,38 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
         throw AuthException(AuthErrorCodes.invalidPhone);
       }
 
-      // Send OTP via API
-      await _apiService.sendOtp(
-        email: email,
-        username: username,
-        firstName: firstName,
-        lastName: lastName,
-        password: password,
+      // Store registration data for later use after OTP verification
+      final registrationData = {
+        'email': email,
+        'username': username,
+        'firstName': firstName,
+        'lastName': lastName,
+        'password': password,
+        'phoneNumber': phoneNumber,
+        'preferredLanguage': preferredLanguage,
+      };
+      
+      await _setString('registration_data_$phoneNumber', _jsonEncode(registrationData));
+
+      // Send OTP via Firebase
+      await _firebaseAuth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
-        languagePreference: preferredLanguage,
+        verificationCompleted: (firebase_auth.PhoneAuthCredential credential) {
+          debugPrint('Phone verification auto-completed');
+        },
+        verificationFailed: (firebase_auth.FirebaseAuthException e) {
+          debugPrint('Phone verification failed: ${e.message}');
+          throw AuthException(AuthErrorCodes.serverError, details: e.message);
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          _verificationId = verificationId;
+          _resendToken = resendToken;
+          debugPrint('OTP sent to $phoneNumber, verification ID: ${verificationId.substring(0, 10)}...');
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          _verificationId = verificationId;
+          debugPrint('OTP auto-retrieval timed out');
+        },
       );
 
       // Create temporary user object
@@ -250,18 +295,9 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
         createdAt: DateTime.now(),
       );
 
-      // Store temporary user
-      await _setString('temp_user_$phoneNumber', _jsonEncode(user.toJson()));
-
-      debugPrint('OTP sent to $phoneNumber, Language: $preferredLanguage');
+      debugPrint('OTP sent to $phoneNumber via Firebase');
 
       return user;
-    } on ApiException catch (e) {
-      debugPrint('API sign up error: ${e.message}');
-      if (e.message.toLowerCase().contains('already')) {
-        throw AuthException(AuthErrorCodes.phoneAlreadyRegistered);
-      }
-      throw AuthException(AuthErrorCodes.serverError, details: e.message);
     } catch (e) {
       debugPrint('Sign up error: $e');
       rethrow;
@@ -313,37 +349,74 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
     required String otp,
   }) async {
     try {
-      // Verify OTP via API
-      final response = await _apiService.verifyOtp(
-        phoneNumber: phoneNumber,
-        otp: otp,
-      );
-
-      debugPrint('OTP verified for: $phoneNumber');
-
-      // Get temporary user data
-      await _ensurePrefs();
-      final tempUserJson = _getString('temp_user_$phoneNumber');
-      
-      User? user;
-      if (tempUserJson != null && response['user'] != null) {
-        // Parse user from API response
-        user = User.fromJson(response['user']);
-      } else if (response['user'] != null) {
-        user = User.fromJson(response['user']);
+      if (_verificationId == null) {
+        throw AuthException(AuthErrorCodes.invalidOtpFormat, 
+          details: 'Verification ID not found. Please request OTP again.');
       }
 
-      if (user != null) {
-        // Save verified user
-        await _saveUserToPrefs(user);
-        await _removeString('temp_user_$phoneNumber');
+      // Create credential from OTP
+      final credential = firebase_auth.PhoneAuthProvider.credential(
+        verificationId: _verificationId!,
+        smsCode: otp,
+      );
+
+      // Sign in with phone credential
+      final userCredential = await _firebaseAuth.signInWithCredential(credential);
+
+      debugPrint('Phone verified for: $phoneNumber');
+
+      // Get registration data
+      await _ensurePrefs();
+      final registrationDataJson = _getString('registration_data_$phoneNumber');
+      
+      if (registrationDataJson != null) {
+        try {
+          // Register user with FastAPI backend after Firebase verification
+          final regData = Map<String, dynamic>.from(
+            (registrationDataJson as dynamic) as Map,
+          );
+          
+          await _apiService.sendOtp(
+            email: regData['email'],
+            username: regData['username'],
+            firstName: regData['firstName'],
+            lastName: regData['lastName'],
+            password: regData['password'],
+            phoneNumber: regData['phoneNumber'],
+            languagePreference: regData['preferredLanguage'],
+          );
+
+          // Create user object
+          final user = User(
+            id: userCredential.user?.uid,
+            email: regData['email'],
+            username: regData['username'],
+            firstName: regData['firstName'],
+            lastName: regData['lastName'],
+            phoneNumber: phoneNumber,
+            phoneVerified: true,
+            emailVerified: userCredential.user?.emailVerified ?? false,
+            preferredLanguage: regData['preferredLanguage'],
+            createdAt: DateTime.now(),
+          );
+
+          // Save user
+          await _saveUserToPrefs(user);
+          await _removeString('registration_data_$phoneNumber');
+          
+          return true;
+        } catch (e) {
+          debugPrint('Backend registration error: $e');
+          // Firebase phone verified successfully, but backend registration failed
+          throw AuthException(AuthErrorCodes.serverError, 
+            details: 'Phone verified but registration incomplete: $e');
+        }
       }
 
       return true;
-    } on ApiException catch (e) {
-      debugPrint('API verify OTP error: ${e.message}');
-      if (e.message.toLowerCase().contains('invalid') || 
-          e.message.toLowerCase().contains('expired')) {
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      debugPrint('Firebase OTP verification error: ${e.code}');
+      if (e.code == 'invalid-verification-code') {
         throw AuthException(AuthErrorCodes.invalidOtpFormat);
       }
       throw AuthException(AuthErrorCodes.serverError, details: e.message);
@@ -376,8 +449,26 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
         throw AuthException(AuthErrorCodes.invalidPhone);
       }
 
-      debugPrint('Resending OTP to phone: $phoneNumber');
-      // In production, send OTP via SMS service
+      // Resend OTP via Firebase using the resend token
+      await _firebaseAuth.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        resendToken: _resendToken,
+        verificationCompleted: (firebase_auth.PhoneAuthCredential credential) {
+          debugPrint('Phone verification auto-completed on resend');
+        },
+        verificationFailed: (firebase_auth.FirebaseAuthException e) {
+          debugPrint('Phone verification resend failed: ${e.message}');
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          _verificationId = verificationId;
+          _resendToken = resendToken;
+          debugPrint('OTP resent to $phoneNumber');
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          _verificationId = verificationId;
+        },
+      );
+
       return true;
     } catch (e) {
       debugPrint('Resend OTP error: $e');

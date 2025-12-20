@@ -53,15 +53,22 @@ class ApiService {
     }
   }
 
-  // Get headers
-  Map<String, String> _getHeaders({bool includeAuth = false}) {
+  // Get headers - automatically loads token if needed
+  Future<Map<String, String>> _getHeaders({bool includeAuth = false}) async {
     final headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
     
-    if (includeAuth && _accessToken != null) {
-      headers['Authorization'] = 'Bearer $_accessToken';
+    if (includeAuth) {
+      // Always try to get the latest token from storage
+      final token = await getStoredToken();
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+        debugPrint('Using auth token: ${token.substring(0, 20)}...');
+      } else {
+        debugPrint('Warning: No auth token available for authenticated request');
+      }
     }
     
     return headers;
@@ -79,9 +86,10 @@ class ApiService {
     String? role,
   }) async {
     try {
+      final headers = await _getHeaders();
       final response = await http.post(
         Uri.parse('$baseUrl/auth/send-otp'),
-        headers: _getHeaders(),
+        headers: headers,
         body: jsonEncode({
           'email': email,
           'username': username,
@@ -118,9 +126,10 @@ class ApiService {
     required String otp,
   }) async {
     try {
+      final headers = await _getHeaders();
       final response = await http.post(
         Uri.parse('$baseUrl/auth/verify-otp'),
-        headers: _getHeaders(),
+        headers: headers,
         body: jsonEncode({
           'phone_number': phoneNumber,
           'otp': otp,
@@ -187,11 +196,11 @@ class ApiService {
   // Logout
   Future<void> logout() async {
     try {
-      await getStoredToken();
+      final headers = await _getHeaders(includeAuth: true);
       
       final response = await http.post(
         Uri.parse('$baseUrl/auth/logout'),
-        headers: _getHeaders(includeAuth: true),
+        headers: headers,
       );
 
       debugPrint('Logout Response: ${response.statusCode}');
@@ -214,11 +223,11 @@ class ApiService {
   // Get User
   Future<Map<String, dynamic>> getUser() async {
     try {
-      await getStoredToken();
+      final headers = await _getHeaders(includeAuth: true);
       
       final response = await http.get(
         Uri.parse('$baseUrl/user/get_user'),
-        headers: _getHeaders(includeAuth: true),
+        headers: headers,
       );
 
       debugPrint('Get User Response: ${response.statusCode}');
@@ -240,11 +249,11 @@ class ApiService {
   // Get Profile
   Future<Map<String, dynamic>> getProfile() async {
     try {
-      await getStoredToken();
+      final headers = await _getHeaders(includeAuth: true);
       
       final response = await http.get(
         Uri.parse('$baseUrl/user/profile'),
-        headers: _getHeaders(includeAuth: true),
+        headers: headers,
       );
 
       debugPrint('Get Profile Response: ${response.statusCode}');
@@ -272,7 +281,7 @@ class ApiService {
     String? profileImageUrl,
   }) async {
     try {
-      await getStoredToken();
+      final headers = await _getHeaders(includeAuth: true);
       
       final body = <String, dynamic>{};
       if (firstName != null) body['first_name'] = firstName;
@@ -285,7 +294,7 @@ class ApiService {
 
       final response = await http.put(
         Uri.parse('$baseUrl/user/profile'),
-        headers: _getHeaders(includeAuth: true),
+        headers: headers,
         body: jsonEncode(body),
       );
 
@@ -308,11 +317,11 @@ class ApiService {
   // Delete User
   Future<void> deleteUser() async {
     try {
-      await getStoredToken();
+      final headers = await _getHeaders(includeAuth: true);
       
       final response = await http.delete(
         Uri.parse('$baseUrl/user/delete_user'),
-        headers: _getHeaders(includeAuth: true),
+        headers: headers,
       );
 
       debugPrint('Delete User Response: ${response.statusCode}');
