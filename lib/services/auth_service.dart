@@ -449,25 +449,47 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
         throw AuthException(AuthErrorCodes.invalidPhone);
       }
 
-      // Resend OTP via Firebase using the resend token
-      await _firebaseAuth.verifyPhoneNumber(
-        phoneNumber: phoneNumber,
-        resendToken: _resendToken,
-        verificationCompleted: (firebase_auth.PhoneAuthCredential credential) {
-          debugPrint('Phone verification auto-completed on resend');
-        },
-        verificationFailed: (firebase_auth.FirebaseAuthException e) {
-          debugPrint('Phone verification resend failed: ${e.message}');
-        },
-        codeSent: (String verificationId, int? resendToken) {
-          _verificationId = verificationId;
-          _resendToken = resendToken;
-          debugPrint('OTP resent to $phoneNumber');
-        },
-        codeAutoRetrievalTimeout: (String verificationId) {
-          _verificationId = verificationId;
-        },
-      );
+      // Only use resend token on native platforms (not web)
+      if (kIsWeb) {
+        // On web, request OTP again without resend token
+        await _firebaseAuth.verifyPhoneNumber(
+          phoneNumber: phoneNumber,
+          verificationCompleted: (firebase_auth.PhoneAuthCredential credential) {
+            debugPrint('Phone verification auto-completed on resend (web)');
+          },
+          verificationFailed: (firebase_auth.FirebaseAuthException e) {
+            debugPrint('Phone verification resend failed (web): ${e.message}');
+          },
+          codeSent: (String verificationId, int? resendToken) {
+            _verificationId = verificationId;
+            _resendToken = resendToken;
+            debugPrint('OTP resent to $phoneNumber (web)');
+          },
+          codeAutoRetrievalTimeout: (String verificationId) {
+            _verificationId = verificationId;
+          },
+        );
+      } else {
+        // On native platforms, use the resend token
+        await _firebaseAuth.verifyPhoneNumber(
+          phoneNumber: phoneNumber,
+          resendToken: _resendToken,
+          verificationCompleted: (firebase_auth.PhoneAuthCredential credential) {
+            debugPrint('Phone verification auto-completed on resend (native)');
+          },
+          verificationFailed: (firebase_auth.FirebaseAuthException e) {
+            debugPrint('Phone verification resend failed (native): ${e.message}');
+          },
+          codeSent: (String verificationId, int? resendToken) {
+            _verificationId = verificationId;
+            _resendToken = resendToken;
+            debugPrint('OTP resent to $phoneNumber (native)');
+          },
+          codeAutoRetrievalTimeout: (String verificationId) {
+            _verificationId = verificationId;
+          },
+        );
+      }
 
       return true;
     } catch (e) {
