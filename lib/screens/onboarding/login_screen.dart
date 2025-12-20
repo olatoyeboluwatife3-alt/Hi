@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'phone_signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,6 +12,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  bool _showPassword = false;
 
   @override
   void dispose() {
@@ -59,6 +62,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     label: 'Password',
                     controller: _passwordController,
                     isPassword: true,
+                    showPassword: _showPassword,
+                    onToggleVisibility: () {
+                      setState(() {
+                        _showPassword = !_showPassword;
+                      });
+                    },
                   ),
                   const SizedBox(height: 12),
 
@@ -105,6 +114,145 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 16),
+
+                  // Don't have an account? Register
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Don\'t have an account? ',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          fontFamily: 'Poppins',
+                          color: Colors.black,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (_) => const PhoneSignupScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'Register',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            fontFamily: 'Poppins',
+                            color: Color(0xFF2E683D),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Sign In with Google
+                  SizedBox(
+                    width: 360,
+                    height: 60,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        // TODO: Hook up Google sign in
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.grey.shade400),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        backgroundColor: Colors.transparent,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.grey.shade200,
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'G',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'Sign In with Google',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                              fontFamily: 'Poppins',
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Sign In with Facebook
+                  SizedBox(
+                    width: 360,
+                    height: 60,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        // TODO: Hook up Facebook sign in
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.grey.shade400),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        backgroundColor: Colors.transparent,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.grey.shade200,
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'f',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'Sign In with Facebook',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                              fontFamily: 'Poppins',
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 30),
                 ],
               ),
@@ -120,6 +268,8 @@ class _LoginScreenState extends State<LoginScreen> {
     required TextEditingController controller,
     TextInputType keyboardType = TextInputType.text,
     bool isPassword = false,
+    bool showPassword = false,
+    VoidCallback? onToggleVisibility,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -144,7 +294,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: TextFormField(
             controller: controller,
             keyboardType: keyboardType,
-            obscureText: isPassword,
+            obscureText: isPassword && !showPassword,
             decoration: InputDecoration(
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
@@ -155,6 +305,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 color: Colors.grey.shade400,
                 fontFamily: 'Poppins',
               ),
+              suffixIcon: isPassword
+                  ? IconButton(
+                      icon: Icon(
+                        showPassword ? Icons.visibility_off : Icons.visibility,
+                        color: const Color(0xFF2E683D),
+                      ),
+                      onPressed: onToggleVisibility,
+                    )
+                  : null,
             ),
             style: const TextStyle(
               fontFamily: 'Poppins',
@@ -178,8 +337,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     // TODO: Wire up authentication flow
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Login action tapped')),
-    );
+    // For now, navigate to home screen
+    Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
   }
 }

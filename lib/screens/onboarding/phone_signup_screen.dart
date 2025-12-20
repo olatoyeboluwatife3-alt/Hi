@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'onboarding_screens.dart';
+import 'login_screen.dart';
 
 class PhoneSignupScreen extends StatefulWidget {
   const PhoneSignupScreen({super.key});
@@ -16,6 +17,9 @@ class _PhoneSignupScreenState extends State<PhoneSignupScreen> {
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
+
   @override
   void dispose() {
     _fullNameController.dispose();
@@ -26,94 +30,182 @@ class _PhoneSignupScreenState extends State<PhoneSignupScreen> {
   }
 
   void _showVerifyModal() {
+    final otp1Controller = TextEditingController();
+    final otp2Controller = TextEditingController();
+    final otp3Controller = TextEditingController();
+    final otp4Controller = TextEditingController();
+    int secondsRemaining = 180; // 3 minutes
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-          child: Dialog(
-            backgroundColor: Colors.transparent,
-            child: Container(
-              width: 363,
-              height: 430,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.check_circle_outline,
-                      size: 80,
-                      color: Color(0xFF2E683D),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Verify Your Account',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Poppins',
-                        color: Colors.black,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'A verification code has been sent to your phone number. Please enter it to continue.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                        fontFamily: 'Poppins',
-                        color: Colors.black54,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: 315,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          // Navigate to login screen (you'll need to create this)
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (_) => const OnboardingScreens(), // Replace with actual login screen
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2E683D),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5),
-                          ),
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            // Start timer when dialog is shown
+            if (secondsRemaining == 180) {
+              Future.delayed(const Duration(milliseconds: 100), () {
+                _startTimer(secondsRemaining, setState, context);
+              });
+            }
+
+            return BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              child: Dialog(
+                backgroundColor: Colors.transparent,
+                child: Container(
+                  width: 363,
+                  height: 430,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.check_circle_outline,
+                          size: 80,
+                          color: Color(0xFF2E683D),
                         ),
-                        child: const Text(
-                          'Verify',
+                        const SizedBox(height: 24),
+                        const Text(
+                          'Verify Your Account',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'Poppins',
+                            color: Colors.black,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'A verification code has been sent to your phone number. Please enter it to continue.',
+                          style: TextStyle(
+                            fontSize: 14,
                             fontWeight: FontWeight.w400,
                             fontFamily: 'Poppins',
-                            color: Colors.white,
+                            color: Colors.black54,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        // OTP Input Fields
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _buildOTPField(otp1Controller),
+                            const SizedBox(width: 10),
+                            _buildOTPField(otp2Controller),
+                            const SizedBox(width: 10),
+                            _buildOTPField(otp3Controller),
+                            const SizedBox(width: 10),
+                            _buildOTPField(otp4Controller),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        // Resend and Timer
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            GestureDetector(
+                              onTap: secondsRemaining == 0
+                                  ? () {
+                                      setState(() {
+                                        secondsRemaining = 180;
+                                        _startTimer(secondsRemaining, setState, context);
+                                      });
+                                    }
+                                  : null,
+                              child: Text(
+                                'Resend',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                  fontFamily: 'Poppins',
+                                  color: secondsRemaining == 0
+                                      ? const Color(0xFF2E683D)
+                                      : Colors.grey.shade400,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Text(
+                              _formatTime(secondsRemaining),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                                fontFamily: 'Poppins',
+                                color: Color(0xFF2E683D),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: 315,
+                          height: 56,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              // Navigate to login screen
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (_) => const LoginScreen(),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2E683D),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                            ),
+                            child: const Text(
+                              'Verify',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
+                                fontFamily: 'Poppins',
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
+  }
+
+  void _startTimer(int seconds, StateSetter setState, BuildContext context) {
+    Future.delayed(const Duration(seconds: 1), () {
+      if (Navigator.of(context).canPop()) {
+        setState(() {
+          seconds--;
+        });
+        if (seconds > 0) {
+          _startTimer(seconds, setState, context);
+        }
+      }
+    });
+  }
+
+  String _formatTime(int seconds) {
+    int minutes = seconds ~/ 60;
+    int remainingSeconds = seconds % 60;
+    return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -164,6 +256,12 @@ class _PhoneSignupScreenState extends State<PhoneSignupScreen> {
                     label: 'Password',
                     controller: _passwordController,
                     isPassword: true,
+                    showPassword: _showPassword,
+                    onToggleVisibility: () {
+                      setState(() {
+                        _showPassword = !_showPassword;
+                      });
+                    },
                   ),
                   const SizedBox(height: 5),
 
@@ -172,6 +270,12 @@ class _PhoneSignupScreenState extends State<PhoneSignupScreen> {
                     label: 'Confirm Password',
                     controller: _confirmPasswordController,
                     isPassword: true,
+                    showPassword: _showConfirmPassword,
+                    onToggleVisibility: () {
+                      setState(() {
+                        _showConfirmPassword = !_showConfirmPassword;
+                      });
+                    },
                   ),
                   const SizedBox(height: 24),
 
@@ -189,15 +293,15 @@ class _PhoneSignupScreenState extends State<PhoneSignupScreen> {
                   const SizedBox(height: 16),
 
                   // Social Sign-in Circles
-                  Column(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       _buildSocialCircle('G'),
-                      const SizedBox(height: 10),
+                      const SizedBox(width: 10),
                       _buildSocialCircle('f'),
                     ],
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
 
                   // Submit Button
                   SizedBox(
@@ -261,6 +365,8 @@ class _PhoneSignupScreenState extends State<PhoneSignupScreen> {
     required TextEditingController controller,
     TextInputType keyboardType = TextInputType.text,
     bool isPassword = false,
+    bool showPassword = false,
+    VoidCallback? onToggleVisibility,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -285,7 +391,7 @@ class _PhoneSignupScreenState extends State<PhoneSignupScreen> {
           child: TextFormField(
             controller: controller,
             keyboardType: keyboardType,
-            obscureText: isPassword,
+            obscureText: isPassword && !showPassword,
             decoration: InputDecoration(
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
@@ -296,6 +402,15 @@ class _PhoneSignupScreenState extends State<PhoneSignupScreen> {
                 color: Colors.grey.shade400,
                 fontFamily: 'Poppins',
               ),
+              suffixIcon: isPassword
+                  ? IconButton(
+                      icon: Icon(
+                        showPassword ? Icons.visibility_off : Icons.visibility,
+                        color: const Color(0xFF2E683D),
+                      ),
+                      onPressed: onToggleVisibility,
+                    )
+                  : null,
             ),
             style: const TextStyle(
               fontFamily: 'Poppins',
@@ -331,4 +446,34 @@ class _PhoneSignupScreenState extends State<PhoneSignupScreen> {
       ),
     );
   }
-}
+
+  Widget _buildOTPField(TextEditingController controller) {
+    return Container(
+      width: 60,
+      height: 66,
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: const Color(0xFFA8D497),
+          width: 2,
+        ),
+      ),
+      child: TextField(
+        controller: controller,
+        maxLength: 1,
+        textAlign: TextAlign.center,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(
+          border: InputBorder.none,
+          counterText: '',
+        ),
+        style: const TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Poppins',
+          color: Color(0xFF2E683D),
+        ),
+      ),
+    );
+  }
