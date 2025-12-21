@@ -366,7 +366,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildCalendarTab() {
     final size = MediaQuery.of(context).size;
-    final greenHeight = size.height * 0.5;
+    final greenHeight = size.height * 0.65;
     
     return Scaffold(
       backgroundColor: const Color(0xFF2E683D),
@@ -522,7 +522,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          Divider(color: Colors.grey, thickness: 1, height: 14),
           // Row 2: Fertile window
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -545,7 +545,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          Divider(color: Colors.grey, thickness: 1, height: 14),
           // Row 3: Gender specific
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -568,7 +568,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          Divider(color: Colors.grey, thickness: 1, height: 14),
           // Row 4: AI insights
           Row(
             children: [
@@ -589,7 +589,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(width: 8),
               const Text(
-                'AI',
+                'Normal',
                 style: TextStyle(
                   fontSize: 12,
                   color: Color(0xFF2E683D),
@@ -603,10 +603,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: Colors.grey.shade500,
               ),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Unlock detailed insights and chat with verified doctors',
-                  style: TextStyle(
+                  maxLines: 3,
+                  softWrap: true,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
                     fontSize: 12,
                     color: Colors.grey,
                     fontWeight: FontWeight.w500,
