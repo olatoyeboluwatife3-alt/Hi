@@ -473,26 +473,279 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildLearnHubTab() {
-    return Center(
+    final filters = ['Fertility basics', 'Myths & Facts', 'Trying to conceive'];
+    int activeFilter = 0;
+
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: Column(
+            children: [
+              Container(
+                width: 363,
+                height: 110,
+                margin: const EdgeInsets.only(top: 50, bottom: 16, left: 30),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF2E683D),
+                ),
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Educational Hub',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      right: 57,
+                      top: 0,
+                      bottom: 0,
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: Icon(
+                          Icons.bookmark,
+                          color: Colors.white,
+                          size: 32,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: List.generate(
+                      filters.length,
+                      (index) => Padding(
+                        padding: EdgeInsets.only(right: index < filters.length - 1 ? 12 : 0),
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              activeFilter = index;
+                            });
+                          },
+                          child: Container(
+                            width: 140,
+                            height: 46.2,
+                            decoration: BoxDecoration(
+                              color: activeFilter == index
+                                  ? const Color(0xFF2E683D)
+                                  : Colors.white,
+                              border: activeFilter == index
+                                  ? null
+                                  : Border.all(
+                                      color: Colors.grey.shade300,
+                                      width: 1,
+                                    ),
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Center(
+                              child: Text(
+                                filters[index],
+                                style: TextStyle(
+                                  color:
+                                      activeFilter == index ? Colors.white : Colors.black,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  fontFamily: 'Poppins',
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  children: [
+                    _buildArticleCard(
+                      title: "Infertility isn't a curse",
+                      description:
+                          'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+                      category: 'Fertility basics',
+                      duration: '5 minutes read',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildArticleCard(
+                      title: 'Understanding Your Fertility Cycle',
+                      description:
+                          'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+                      category: 'Trying to conceive',
+                      duration: '4 minutes read',
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildArticleCard({
+    required String title,
+    required String description,
+    required String category,
+    required String duration,
+  }) {
+    return Container(
+      width: 362,
+      height: 531,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(6),
+      ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.school, size: 64, color: Colors.grey.shade400),
-          const SizedBox(height: 16),
-          Text(
-            AppLocalizations.of(context)!.learnHub,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
+          Container(
+            width: double.infinity,
+            height: 323,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(6),
+                topRight: Radius.circular(6),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2E683D).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    category,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF2E683D),
+                      fontWeight: FontWeight.w500,
+                      fontFamily: 'Poppins',
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  duration,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                fontFamily: 'Poppins',
+                color: Colors.black,
+              ),
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            AppLocalizations.of(context)!.educationalContentComingSoon,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade600,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Text(
+              description,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade700,
+                fontFamily: 'Poppins',
+              ),
+            ),
+          ),
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.only(left: 15, right: 15, bottom: 16),
+            child: Row(
+              children: [
+                Container(
+                  width: 90,
+                  height: 29,
+                  color: const Color(0xFF2E683D),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.play_arrow, color: Colors.white, size: 16),
+                      SizedBox(width: 6),
+                      Text(
+                        'Listen',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFA8D497).withOpacity(0.4),
+                  ),
+                  child: const Text(
+                    'English',
+                    style: TextStyle(
+                      color: Color(0xFF2E683D),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'Poppins',
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: const Color(0xFF2E683D)),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Icon(
+                    Icons.bookmark,
+                    size: 18,
+                    color: Color(0xFF2E683D),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
