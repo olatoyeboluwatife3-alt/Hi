@@ -478,6 +478,7 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
   }
 
   @override
+  @override
   Future<bool> resendPhoneOTP({required String phoneNumber}) async {
     try {
       if (!_isValidPhoneNumber(phoneNumber)) {
@@ -511,6 +512,11 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
                 _verificationId = verificationId;
               },
             );
+          } else {
+            throw AuthException(
+              AuthErrorCodes.invalidOtpFormat,
+              details: 'Resend token not available. Please request OTP again.',
+            );
           }
         }
       } else {
@@ -521,10 +527,11 @@ class AuthServiceImpl extends ChangeNotifier implements AuthService {
         );
       }
 
+      debugPrint('Phone OTP resent successfully to $phoneNumber');
       return true;
     } catch (e) {
-      debugPrint('Resend OTP error: $e');
-      rethrow;
+      debugPrint('Resend phone OTP error: $e');
+      return false;
     }
   }
 
